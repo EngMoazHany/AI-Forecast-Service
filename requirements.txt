@@ -1,6 +1,6 @@
 fastapi
-lightgbm
-pandas
-numpy
+uvicorn
 joblib
-python-dateutil
+numpy
+pandas
+scikit-learn

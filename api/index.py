@@ -1,17 +1,38 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Dict, List
 from api.forecasting_service import run_forecast
 
-app = FastAPI()
+app = FastAPI(
+    title="Finexa AI Forecast Service",
+    version="1.0.0"
+)
 
-@app.get("/api/health")
+# =============================
+# DTOs
+# =============================
+
+class MonthPoint(BaseModel):
+    month: str
+    amount: float
+
+class ForecastRequest(BaseModel):
+    series: Dict[str, List[MonthPoint]]
+    forecast_horizon: int = 1
+
+
+# =============================
+# Routes
+# =============================
+
+@app.post("/forecast")
+def forecast(dto: ForecastRequest):
+    try:
+        return run_forecast(dto.series, dto.forecast_horizon)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/health")
 def health():
     return {"status": "ok"}
-
-@app.post("/api/forecast")
-async def forecast(dto: dict):
-    return run_forecast(dto["series"], dto.get("forecast_horizon", 1))
-
-
-# 👇 مهم جدًا للسيرفرلس
-def handler(request):
-    return app(request.scope, request.receive, request.send)
