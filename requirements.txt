@@ -1,0 +1,6 @@
+fastapi
+lightgbm
+pandas
+numpy
+joblib
+python-dateutil
