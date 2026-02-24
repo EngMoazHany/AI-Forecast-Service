@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict, List
-from forecasting_service import run_forecast
+from api.forecasting_service import run_forecast
 
 app = FastAPI(
     title="Finexa AI Forecast Service",

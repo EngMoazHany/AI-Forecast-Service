@@ -1,15 +1,22 @@
+import os
 import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Any
 
-bundle = joblib.load("global_expense_model.pkl")
+# -------------------------
+# SAFE MODEL LOADING
+# -------------------------
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "..", "global_expense_model.pkl")
+
+bundle = joblib.load(MODEL_PATH)
 model = bundle["model"]
 category_mapping = bundle["category_mapping"]
 
 MODEL_VERSION = "global_ml_hybrid_v1"
-
 ALPHA = 0.5  # Personal weight
 
 
@@ -31,13 +38,13 @@ def run_forecast(series_dict: Dict[str, List[Any]], horizon: int):
         if category not in category_mapping:
             raise ValueError(f"Unknown category: {category}")
 
-        data_sorted = sorted(data, key=lambda x: x.month)
-        values = [float(p.amount) for p in data_sorted]
+        data_sorted = sorted(data, key=lambda x: x["month"])
+        values = [float(p["amount"]) for p in data_sorted]
 
         if len(values) < 3:
             continue
 
-        months = _next_months(data_sorted[-1].month, horizon)
+        months = _next_months(data_sorted[-1]["month"], horizon)
         category_code = category_mapping[category]
 
         preds = []
@@ -57,9 +64,7 @@ def run_forecast(series_dict: Dict[str, List[Any]], horizon: int):
 
             global_pred = model.predict(X)[0]
 
-            # -----------------------
             # Personal Adjustment
-            # -----------------------
             personal_mean = np.mean(temp_values[-3:])
             personal_bias = personal_mean - global_mean
 
