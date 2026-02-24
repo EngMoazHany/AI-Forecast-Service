@@ -6,15 +6,28 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # -------------------------
-# SAFE MODEL LOADING
+# SAFE MODEL PATH
 # -------------------------
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "..", "global_expense_model.pkl")
 
-bundle = joblib.load(MODEL_PATH)
-model = bundle["model"]
-category_mapping = bundle["category_mapping"]
+# -------------------------
+# LAZY LOAD (IMPORTANT FOR VERCEL)
+# -------------------------
+
+model = None
+category_mapping = None
+
+
+def load_model():
+    global model, category_mapping
+
+    if model is None:
+        bundle = joblib.load(MODEL_PATH)
+        model = bundle["model"]
+        category_mapping = bundle["category_mapping"]
+
 
 MODEL_VERSION = "global_ml_hybrid_v1"
 ALPHA = 0.5  # Personal weight
@@ -29,6 +42,9 @@ def _next_months(last_month: str, horizon: int):
 
 
 def run_forecast(series_dict: Dict[str, List[Any]], horizon: int):
+
+    # 🔥 IMPORTANT: Load model here not at import time
+    load_model()
 
     forecast_out = {}
     total = None
