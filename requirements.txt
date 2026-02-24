@@ -1,7 +1,6 @@
 fastapi
 uvicorn
-numpy
 pandas
-joblib
+numpy
 scikit-learn
-lightgbm==4.3.0
+joblib
