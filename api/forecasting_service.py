@@ -17,7 +17,7 @@ category_mapping = bundle["category_mapping"]
 
 MODEL_VERSION = bundle.get("model_version", "rf_global_v1")
 
-ALPHA = 0.5  # Personal weight (0..1)
+ALPHA = 0.3  # Personal weight (0..1)
 
 
 def _next_months(last_month: str, horizon: int):
