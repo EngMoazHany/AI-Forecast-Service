@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 
 # ===============================
@@ -25,10 +25,7 @@ class SavingPlanRequest(BaseModel):
     goal_amount: float = Field(..., gt=0)
     months: int = Field(..., gt=0, le=120)
 
-    # historical spending per category
     series: Dict[str, List[DataPoint]]
-
-    # how many months to forecast
     forecast_horizon: int = Field(3, gt=0, le=24)
 
 
@@ -38,6 +35,21 @@ class SavingPlanMonth(BaseModel):
     expected_free_cash: float
 
 
+class OptimizationResult(BaseModel):
+    status: Literal["ok", "infeasible", "no_solver"]
+    required_cut: float
+    achieved_cut: float
+
+    # reductions per category (EGP/month)
+    reductions: Dict[str, float] = {}
+
+    # new budgets per category (EGP/month)
+    new_budgets: Dict[str, float] = {}
+
+    meta: Optional[Dict[str, object]] = None
+    note: Optional[str] = None
+
+
 class SavingPlanResponse(BaseModel):
 
     model_version: str
@@ -45,7 +57,6 @@ class SavingPlanResponse(BaseModel):
     required_monthly_saving: float
 
     predicted_monthly_expenses_avg: float
-
     predicted_free_cash_avg: float
 
     feasible: bool
@@ -57,3 +68,6 @@ class SavingPlanResponse(BaseModel):
     risk_level: Literal["low", "medium", "high"]
 
     plan: List[SavingPlanMonth]
+
+    # ✅ NEW: optimizer output always included
+    optimization: OptimizationResult
