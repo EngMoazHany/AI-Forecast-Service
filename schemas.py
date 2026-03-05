@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Any
 
 
 # ===============================
@@ -36,17 +36,17 @@ class SavingPlanMonth(BaseModel):
 
 
 class OptimizationResult(BaseModel):
+
     status: Literal["ok", "infeasible", "no_solver"]
+
     required_cut: float
     achieved_cut: float
 
-    # reductions per category (EGP/month)
     reductions: Dict[str, float] = {}
 
-    # new budgets per category (EGP/month)
     new_budgets: Dict[str, float] = {}
 
-    meta: Optional[Dict[str, object]] = None
+    meta: Optional[Dict[str, Any]] = None
     note: Optional[str] = None
 
 
@@ -69,5 +69,61 @@ class SavingPlanResponse(BaseModel):
 
     plan: List[SavingPlanMonth]
 
-    # ✅ NEW: optimizer output always included
     optimization: OptimizationResult
+
+
+# ===============================
+# AI Insights Schemas (NEW)
+# ===============================
+
+class InsightItem(BaseModel):
+
+    code: str
+
+    severity: Literal["info", "warning", "critical"]
+
+    title: str
+
+    message: str
+
+    impact_monthly_egp: float = 0
+
+    recommendations: List[str] = []
+
+    data: Optional[Dict[str, Any]] = None
+
+
+class InsightsRequest(BaseModel):
+
+    income: float = Field(..., gt=0)
+
+    goal_amount: float = Field(..., gt=0)
+
+    months: int = Field(..., gt=0, le=120)
+
+    series: Dict[str, List[DataPoint]]
+
+    forecast_horizon: int = Field(3, gt=0, le=24)
+
+
+class InsightsResponse(BaseModel):
+
+    model_version: str
+
+    feasible: bool
+
+    required_monthly_saving: float
+
+    predicted_monthly_expenses_avg: float
+
+    predicted_free_cash_avg: float
+
+    recommended_monthly_saving: float
+
+    risk_level: Literal["low", "medium", "high"]
+
+    insights: List[InsightItem]
+
+    optimization_status: Literal["ok", "infeasible", "no_solver"]
+
+    top_reductions: Dict[str, float] = {}

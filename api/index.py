@@ -3,16 +3,19 @@ from fastapi import FastAPI, HTTPException
 from schemas import (
     ForecastRequest,
     SavingPlanRequest,
-    SavingPlanResponse
+    SavingPlanResponse,
+    InsightsRequest,
+    InsightsResponse
 )
 
 from api.forecasting_service import run_forecast, MODEL_VERSION
 from api.saving_plan_service import build_saving_plan
+from api.insights_service import generate_insights
 
 
 app = FastAPI(
     title="Finexa AI Forecast Service",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 
@@ -37,7 +40,6 @@ async def forecast(dto: ForecastRequest):
 
     try:
 
-        # convert schema to dict structure expected by service
         series = {
             k: [p.model_dump() for p in v]
             for k, v in dto.series.items()
@@ -48,6 +50,7 @@ async def forecast(dto: ForecastRequest):
         return run_forecast(series, horizon)
 
     except Exception as e:
+
         raise HTTPException(
             status_code=400,
             detail=str(e)
@@ -71,6 +74,28 @@ async def saving_plan(dto: SavingPlanRequest):
             status_code=400,
             detail={
                 "code": "SAVING_PLAN_ERROR",
+                "message": str(e)
+            }
+        )
+
+
+# ===============================
+# AI Insights Endpoint (NEW)
+# ===============================
+
+@app.post("/insights", response_model=InsightsResponse)
+async def insights(dto: InsightsRequest):
+
+    try:
+
+        return generate_insights(dto)
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INSIGHTS_ERROR",
                 "message": str(e)
             }
         )
