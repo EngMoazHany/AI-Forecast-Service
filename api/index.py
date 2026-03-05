@@ -15,13 +15,9 @@ from api.insights_service import generate_insights
 
 app = FastAPI(
     title="Finexa AI Forecast Service",
-    version="1.2.0"
+    version="1.3.0"
 )
 
-
-# ===============================
-# Health Check
-# ===============================
 
 @app.get("/health")
 def health():
@@ -30,10 +26,6 @@ def health():
         "model_version": MODEL_VERSION
     }
 
-
-# ===============================
-# Forecast Endpoint
-# ===============================
 
 @app.post("/forecast")
 async def forecast(dto: ForecastRequest):
@@ -45,21 +37,12 @@ async def forecast(dto: ForecastRequest):
             for k, v in dto.series.items()
         }
 
-        horizon = dto.forecast_horizon
-
-        return run_forecast(series, horizon)
+        return run_forecast(series, dto.forecast_horizon)
 
     except Exception as e:
 
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=400, detail=str(e))
 
-
-# ===============================
-# Saving Plan Endpoint
-# ===============================
 
 @app.post("/saving-plan", response_model=SavingPlanResponse)
 async def saving_plan(dto: SavingPlanRequest):
@@ -78,10 +61,6 @@ async def saving_plan(dto: SavingPlanRequest):
             }
         )
 
-
-# ===============================
-# AI Insights Endpoint (NEW)
-# ===============================
 
 @app.post("/insights", response_model=InsightsResponse)
 async def insights(dto: InsightsRequest):

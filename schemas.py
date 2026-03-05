@@ -43,7 +43,6 @@ class OptimizationResult(BaseModel):
     achieved_cut: float
 
     reductions: Dict[str, float] = {}
-
     new_budgets: Dict[str, float] = {}
 
     meta: Optional[Dict[str, Any]] = None
@@ -73,7 +72,20 @@ class SavingPlanResponse(BaseModel):
 
 
 # ===============================
-# AI Insights Schemas (NEW)
+# Goal Strategy
+# ===============================
+
+class GoalStrategy(BaseModel):
+
+    max_possible_goal_in_timeframe: float
+
+    recommended_timeline_months: int
+
+    recommended_monthly_saving: float
+
+
+# ===============================
+# Insights Schemas
 # ===============================
 
 class InsightItem(BaseModel):
@@ -127,3 +139,5 @@ class InsightsResponse(BaseModel):
     optimization_status: Literal["ok", "infeasible", "no_solver"]
 
     top_reductions: Dict[str, float] = {}
+
+    goal_strategy: Optional[GoalStrategy] = None
