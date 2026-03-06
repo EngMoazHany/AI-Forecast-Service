@@ -3,14 +3,11 @@ from fastapi import FastAPI, HTTPException
 from schemas import (
     ForecastRequest,
     SavingPlanRequest,
-    SavingPlanResponse,
-    InsightsRequest,
-    InsightsResponse
+    SavingPlanResponse
 )
 
 from api.forecasting_service import run_forecast, MODEL_VERSION
 from api.saving_plan_service import build_saving_plan
-from api.insights_service import generate_insights
 
 
 app = FastAPI(
@@ -19,6 +16,10 @@ app = FastAPI(
 )
 
 
+# ===============================
+# Health Check
+# ===============================
+
 @app.get("/health")
 def health():
     return {
@@ -26,6 +27,10 @@ def health():
         "model_version": MODEL_VERSION
     }
 
+
+# ===============================
+# Forecast Endpoint
+# ===============================
 
 @app.post("/forecast")
 async def forecast(dto: ForecastRequest):
@@ -41,8 +46,15 @@ async def forecast(dto: ForecastRequest):
 
     except Exception as e:
 
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
+
+# ===============================
+# Saving Plan Endpoint
+# ===============================
 
 @app.post("/saving-plan", response_model=SavingPlanResponse)
 async def saving_plan(dto: SavingPlanRequest):
@@ -57,24 +69,6 @@ async def saving_plan(dto: SavingPlanRequest):
             status_code=400,
             detail={
                 "code": "SAVING_PLAN_ERROR",
-                "message": str(e)
-            }
-        )
-
-
-@app.post("/insights", response_model=InsightsResponse)
-async def insights(dto: InsightsRequest):
-
-    try:
-
-        return generate_insights(dto)
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "code": "INSIGHTS_ERROR",
                 "message": str(e)
             }
         )

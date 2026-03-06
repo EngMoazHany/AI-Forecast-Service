@@ -1,176 +1,136 @@
 from datetime import datetime
-from typing import List, Dict
+from typing import List
 import numpy as np
+import math
 
 from schemas import (
     SavingPlanRequest,
     SavingPlanResponse,
     SavingPlanMonth,
-    OptimizationResult
+    OptimizationResult,
+    InsightItem,
+    GoalStrategy
 )
 
 from api.forecasting_service import run_forecast, MODEL_VERSION
 from api.optimization_engine import optimize_reductions
 
 
-                              
-               
-                              
+MAX_SAVE_RATIO = 0.7
+MIN_BUFFER_RATIO = 0.2
 
-MAX_SAVE_RATIO = 0.7                                              
-MIN_BUFFER_RATIO = 0.2                                   
-
-
-                              
-         
-                              
 
 def next_months(start: str, count: int) -> List[str]:
+
     year, month = map(int, start.split("-"))
     months = []
+
     for _ in range(count):
+
         month += 1
+
         if month == 13:
             year += 1
             month = 1
+
         months.append(f"{year:04d}-{month:02d}")
+
     return months
 
 
-def _avg_forecast_by_category(forecast_by_cat: Dict[str, List[dict]]) -> Dict[str, float]:
-    """
-    forecast['forecast'] = {cat: [{month, amount}, ...], ...}
-    returns avg amount per category over horizon.
-    """
-    out: Dict[str, float] = {}
-    for cat, arr in (forecast_by_cat or {}).items():
-        if not arr:
-            out[cat] = 0.0
-            continue
-        out[cat] = float(np.mean([float(x["amount"]) for x in arr]))
-    return out
+def compute_goal_strategy(goal_amount, months, recommended):
 
+    if recommended <= 0:
+        return None
 
-                              
-             
-                              
+    max_goal = recommended * months
 
-def build_saving_plan(dto: SavingPlanRequest) -> SavingPlanResponse:
+    required_months = math.ceil(goal_amount / recommended)
 
-                                      
-                     
-                                      
-    series = {k: [p.model_dump() for p in v] for k, v in dto.series.items()}
-    forecast = run_forecast(series, dto.forecast_horizon)
-
-    total_forecast = forecast.get("total_forecast", [])
-    forecast_by_cat = forecast.get("forecast", {})
-
-    if not total_forecast:
-        raise ValueError("Forecast returned empty result")
-
-    predicted_expenses = [float(m["amount"]) for m in total_forecast]
-    avg_expense = float(np.mean(predicted_expenses))
-
-                                
-    avg_cat = _avg_forecast_by_category(forecast_by_cat)
-
-                                      
-                                                        
-                                      
-    income = float(dto.income)
-    free_cash = float(income - avg_expense)
-
-                                      
-                               
-                                      
-    required_monthly = float(dto.goal_amount / dto.months)
-
-                                      
-                                                              
-                                   
-                                                           
-                                                                          
-     
-                                                                    
-                                                                
-     
-                                                                         
-                                                  
-                                      
-    threshold_a = required_monthly / MAX_SAVE_RATIO if MAX_SAVE_RATIO > 0 else float("inf")
-    threshold_b = required_monthly / (1.0 - MIN_BUFFER_RATIO) if (1.0 - MIN_BUFFER_RATIO) > 0 else float("inf")
-    required_free_cash_target = max(threshold_a, threshold_b)
-
-    required_cut = max(0.0, required_free_cash_target - free_cash)
-
-                                      
-                                                           
-                                      
-    opt = optimize_reductions(
-        forecast_by_category=avg_cat,
-        required_cut=required_cut,
+    return GoalStrategy(
+        max_possible_goal_in_timeframe=round(max_goal, 2),
+        recommended_timeline_months=required_months,
+        recommended_monthly_saving=round(recommended, 2)
     )
 
-    achieved_cut = float(opt.get("achieved_cut", 0.0))
 
-                                          
-    optimized_avg_expense = max(0.0, avg_expense - achieved_cut)
-    optimized_free_cash = float(income - optimized_avg_expense)
+def build_saving_plan(dto: SavingPlanRequest):
 
-                                      
-                                                        
-                                      
-    feasible = (optimized_free_cash >= required_monthly)
+    series = {
+        k: [p.model_dump() for p in v]
+        for k, v in dto.series.items()
+    }
 
-                                                
-    recommended = min(required_monthly, max(0.0, optimized_free_cash * MAX_SAVE_RATIO))
+    forecast = run_forecast(series, dto.forecast_horizon)
 
-                                     
-    buffer_needed = optimized_free_cash * MIN_BUFFER_RATIO
-    if optimized_free_cash - recommended < buffer_needed:
-        recommended = max(0.0, optimized_free_cash - buffer_needed)
+    total_forecast = forecast["total_forecast"]
+    forecast_by_cat = forecast["forecast"]
 
-                                                                            
-                                                   
-    recommended_cut = max(0.0, required_free_cash_target - optimized_free_cash)
+    predicted_expenses = [m["amount"] for m in total_forecast]
 
-                                      
-                                                  
-                                      
-    ratio = (optimized_free_cash / required_monthly) if required_monthly > 0 else 0.0
-    if ratio >= 1.0:
-        risk = "low"
-    elif ratio >= 0.7:
-        risk = "medium"
-    else:
-        risk = "high"
+    avg_expense = float(np.mean(predicted_expenses))
 
-                                      
-                                                                         
-                                                                    
-                                      
-    forecast_months = [m.get("month") for m in total_forecast if m.get("month")]
+    income = dto.income
 
-    if not forecast_months:
-        start = datetime.utcnow().strftime("%Y-%m")
-        forecast_months = next_months(start, dto.months)
+    free_cash = income - avg_expense
+
+    required_monthly = dto.goal_amount / dto.months
+
+    feasible = free_cash >= required_monthly
+
+    recommended = min(required_monthly, free_cash * MAX_SAVE_RATIO)
+
+    buffer_needed = free_cash * MIN_BUFFER_RATIO
+
+    if free_cash - recommended < buffer_needed:
+        recommended = max(0, free_cash - buffer_needed)
+
+    required_cut = max(0, required_monthly - free_cash)
+
+    avg_cat = {}
+
+    for cat, arr in forecast_by_cat.items():
+        avg_cat[cat] = float(np.mean([x["amount"] for x in arr]))
+
+    optimization = optimize_reductions(avg_cat, required_cut)
+
+    reductions = optimization.get("reductions", {})
+
+    top_reductions = dict(
+        sorted(reductions.items(), key=lambda x: x[1], reverse=True)[:3]
+    )
+
+    insights = []
+
+    if not feasible:
+
+        insights.append(
+            InsightItem(
+                code="GOAL_NOT_FEASIBLE",
+                severity="critical",
+                title="Goal is not achievable with current timeframe",
+                message=f"Required saving {required_monthly} but capacity {round(recommended,2)}.",
+                impact_monthly_egp=required_monthly - recommended,
+                recommendations=[
+                    "Extend timeline",
+                    "Increase income"
+                ]
+            )
+        )
+
+    plan = []
+
+    forecast_months = [m["month"] for m in total_forecast]
 
     months = forecast_months[: dto.months]
 
-    plan: List[SavingPlanMonth] = []
     for i, month in enumerate(months):
-        base_exp = predicted_expenses[min(i, len(predicted_expenses) - 1)]
-        optimized_month_exp = max(0.0, base_exp - achieved_cut)
 
-        free = float(income - optimized_month_exp)
+        expense = predicted_expenses[min(i, len(predicted_expenses) - 1)]
 
-        save = min(recommended, max(0.0, free * MAX_SAVE_RATIO))
+        free = income - expense
 
-                                   
-        buf = free * MIN_BUFFER_RATIO
-        if free - save < buf:
-            save = max(0.0, free - buf)
+        save = min(recommended, free * MAX_SAVE_RATIO)
 
         plan.append(
             SavingPlanMonth(
@@ -180,36 +140,35 @@ def build_saving_plan(dto: SavingPlanRequest) -> SavingPlanResponse:
             )
         )
 
-                                      
-                                       
-                                      
-    optimization = OptimizationResult(
-        status=opt.get("status", "ok"),
-        required_cut=float(opt.get("required_cut", 0.0)),
-        achieved_cut=float(opt.get("achieved_cut", 0.0)),
-        reductions=opt.get("reductions", {}) or {},
-        new_budgets=opt.get("new_budgets", {}) or {},
-        meta=opt.get("meta"),
-        note=opt.get("note"),
+    goal_strategy = compute_goal_strategy(
+        dto.goal_amount,
+        dto.months,
+        recommended
     )
 
     return SavingPlanResponse(
+
         model_version=MODEL_VERSION,
 
         required_monthly_saving=round(required_monthly, 2),
 
-        predicted_monthly_expenses_avg=round(optimized_avg_expense, 2),
-        predicted_free_cash_avg=round(optimized_free_cash, 2),
+        predicted_monthly_expenses_avg=round(avg_expense, 2),
+
+        predicted_free_cash_avg=round(free_cash, 2),
 
         feasible=feasible,
 
         recommended_monthly_saving=round(recommended, 2),
 
-        recommended_cut_target=round(recommended_cut, 2),
+        recommended_cut_target=round(required_cut, 2),
 
-        risk_level=risk,
+        risk_level="low" if feasible else "high",
 
         plan=plan,
 
-        optimization=optimization
+        optimization=OptimizationResult(**optimization),
+
+        insights=insights,
+
+        goal_strategy=goal_strategy
     )
