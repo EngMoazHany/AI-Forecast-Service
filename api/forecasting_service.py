@@ -5,9 +5,9 @@ import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Any
 
-# -------------------------
-# SAFE MODEL LOADING
-# -------------------------
+                           
+                    
+                           
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "..", "global_expense_model.pkl")
 
@@ -17,11 +17,11 @@ category_mapping = bundle["category_mapping"]
 
 MODEL_VERSION = "rf_guardrails_v1"
 
-# -------------------------
-# GUARDRAILS SETTINGS
-# -------------------------
-MAX_MOM_CHANGE = 0.25  # max month-over-month change (25%)  <-- adjust if needed
-SMOOTHING_LAMBDA = 0.6  # 0..1 higher = smoother (closer to last value)
+                           
+                     
+                           
+MAX_MOM_CHANGE = 0.25                                                           
+SMOOTHING_LAMBDA = 0.6                                                 
 
 
 def _next_months(last_month: str, horizon: int):
@@ -66,7 +66,7 @@ def run_forecast(series_dict: Dict[str, List[Any]], horizon: int):
         preds = []
         temp_values = values.copy()
 
-        # Baselines for guardrails
+                                  
         last_val = float(temp_values[-1])
         mean3 = float(np.mean(temp_values[-3:]))
         mean6 = float(np.mean(temp_values[-6:])) if len(temp_values) >= 6 else mean3
@@ -81,37 +81,37 @@ def run_forecast(series_dict: Dict[str, List[Any]], horizon: int):
             X = np.array([[lag1, lag2, lag3, rolling_mean, month_num, category_code]], dtype=float)
             raw_pred = float(model.predict(X)[0])
 
-            # -------------------------
-            # 1) Month-over-month clamp
-            # -------------------------
+                                       
+                                       
+                                       
             lo_mom = last_val * (1.0 - MAX_MOM_CHANGE)
             hi_mom = last_val * (1.0 + MAX_MOM_CHANGE)
 
-            # -------------------------
-            # 2) Mean-based clamp (avoid crazy drift)
-            # allow wider band if user is volatile
-            # -------------------------
+                                       
+                                                     
+                                                  
+                                       
             volatility = float(np.std(temp_values[-6:])) if len(temp_values) >= 6 else float(np.std(temp_values))
-            band = max(0.15 * mean6, 1.5 * volatility)  # dynamic band
+            band = max(0.15 * mean6, 1.5 * volatility)                
             lo_mean = mean6 - band
             hi_mean = mean6 + band
 
-            # Combine clamps
+                            
             lo = max(0.0, lo_mom, lo_mean)
-            hi = max(lo + 1e-6, hi_mom, hi_mean)  # ensure hi > lo
+            hi = max(lo + 1e-6, hi_mom, hi_mean)                  
 
             clamped = _clamp(raw_pred, lo, hi)
 
-            # -------------------------
-            # 3) Smoothing (reduce oscillation)
-            # final = lambda*last + (1-lambda)*clamped
-            # -------------------------
+                                       
+                                               
+                                                      
+                                       
             final_pred = (SMOOTHING_LAMBDA * last_val) + ((1.0 - SMOOTHING_LAMBDA) * clamped)
             final_pred = max(final_pred, 0.0)
 
             preds.append(final_pred)
 
-            # update recursion state
+                                    
             temp_values.append(final_pred)
             last_val = final_pred
             mean3 = float(np.mean(temp_values[-3:]))

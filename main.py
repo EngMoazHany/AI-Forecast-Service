@@ -8,9 +8,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# =============================
-# DTOs
-# =============================
+                               
+      
+                               
 
 class MonthPoint(BaseModel):
     month: str
@@ -20,9 +20,9 @@ class ForecastRequest(BaseModel):
     series: Dict[str, List[MonthPoint]]
     forecast_horizon: int = 1
 
-# =============================
-# Routes
-# =============================
+                               
+        
+                               
 
 @app.post("/forecast")
 def forecast(dto: ForecastRequest):

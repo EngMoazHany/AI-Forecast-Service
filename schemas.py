@@ -2,9 +2,9 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Literal, Optional, Any
 
 
-# ===============================
-# Forecast Schemas
-# ===============================
+                                 
+                  
+                                 
 
 class DataPoint(BaseModel):
     month: str
@@ -16,9 +16,9 @@ class ForecastRequest(BaseModel):
     forecast_horizon: int = Field(..., gt=0, le=24)
 
 
-# ===============================
-# Saving Plan Schemas
-# ===============================
+                                 
+                     
+                                 
 
 class SavingPlanRequest(BaseModel):
     income: float = Field(..., gt=0)
@@ -71,9 +71,9 @@ class SavingPlanResponse(BaseModel):
     optimization: OptimizationResult
 
 
-# ===============================
-# Goal Strategy
-# ===============================
+                                 
+               
+                                 
 
 class GoalStrategy(BaseModel):
 
@@ -84,9 +84,9 @@ class GoalStrategy(BaseModel):
     recommended_monthly_saving: float
 
 
-# ===============================
-# Insights Schemas
-# ===============================
+                                 
+                  
+                                 
 
 class InsightItem(BaseModel):
 

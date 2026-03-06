@@ -25,22 +25,22 @@ class OptimizationConfig:
 
 DEFAULT_CONFIG = OptimizationConfig(
     flex={
-        # adjustable (Fintech-like)
+                                   
         "Food": 0.15,
         "Transport": 0.10,
         "Shopping": 0.35,
         "Entertainment": 0.40,
-        "Bills": 0.00,          # non-reducible
+        "Bills": 0.00,                         
         "Health": 0.10,
         "Education": 0.10,
     },
     pain={
-        # lower pain => optimizer will reduce more from it
+                                                          
         "Entertainment": 0.6,
         "Shopping": 0.7,
         "Food": 1.0,
         "Transport": 1.2,
-        "Bills": 999.0,         # effectively locked
+        "Bills": 999.0,                             
         "Health": 2.0,
         "Education": 2.0,
     },
@@ -69,7 +69,7 @@ def optimize_reductions(
     """
     required_cut = float(max(0.0, required_cut))
 
-    # trivial
+             
     if required_cut <= 1e-9:
         return {
             "status": "ok",
@@ -82,7 +82,7 @@ def optimize_reductions(
     cats = list(forecast_by_category.keys())
     n = len(cats)
 
-    # build caps and costs
+                          
     caps = np.zeros(n, dtype=float)
     costs = np.zeros(n, dtype=float)
 
@@ -92,10 +92,10 @@ def optimize_reductions(
         caps[i] = v * max(0.0, min(1.0, flex))
         costs[i] = float(cfg.pain.get(c, 1.0))
 
-    # if even max possible cut can't reach requirement
+                                                      
     max_possible = float(np.sum(caps))
     if max_possible + 1e-9 < required_cut:
-        # infeasible
+                    
         return {
             "status": "infeasible",
             "required_cut": required_cut,
@@ -105,7 +105,7 @@ def optimize_reductions(
             "note": "Even maximum reducible amounts cannot meet required_cut.",
         }
 
-    # need scipy for professional LP
+                                    
     if not _HAS_SCIPY or linprog is None:
         return {
             "status": "no_solver",
@@ -116,8 +116,8 @@ def optimize_reductions(
             "note": "scipy is not available. Add scipy to requirements.txt to enable LP solver.",
         }
 
-    # Constraints:
-    # Σ r_i >= required_cut  ->  -Σ r_i <= -required_cut
+                  
+                                                        
     A_ub = np.array([[-1.0] * n], dtype=float)
     b_ub = np.array([-required_cut], dtype=float)
 
