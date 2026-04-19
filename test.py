@@ -1,0 +1,2 @@
+from api.forecasting_service import category_mapping
+print(category_mapping)

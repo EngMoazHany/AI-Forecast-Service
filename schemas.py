@@ -1,38 +1,63 @@
+from typing import Any, Dict, List, Literal, Optional
+
 from pydantic import BaseModel, Field
-from typing import Dict, List, Literal, Optional, Any
+
+
+# ===============================
+# Shared Data Point
+# ===============================
+
+class DataPoint(BaseModel):
+    month: str = Field(..., description="Month in YYYY-MM format")
+    amount: float = Field(..., ge=0, description="Amount for the month")
 
 
 # ===============================
 # Forecast Schemas
 # ===============================
 
-class DataPoint(BaseModel):
-    month: str
-    amount: float
-
-
 class ForecastRequest(BaseModel):
-    series: Dict[str, List[DataPoint]]
-    forecast_horizon: int = Field(..., gt=0, le=24)
+    series: Dict[str, List[DataPoint]] = Field(
+        ...,
+        description="Historical monthly amounts grouped by category"
+    )
+    forecast_horizon: int = Field(
+        ...,
+        gt=0,
+        le=24,
+        description="Number of future months to forecast"
+    )
 
 
 # ===============================
-# Saving Plan Schemas
+# Saving Plan Request
 # ===============================
 
 class SavingPlanRequest(BaseModel):
-    income: float = Field(..., gt=0)
-    goal_amount: float = Field(..., gt=0)
-    months: int = Field(..., gt=0, le=120)
+    income: float = Field(..., gt=0, description="User monthly income")
+    goal_amount: float = Field(..., gt=0, description="Target savings goal amount")
+    months: int = Field(..., gt=0, le=120, description="Target timeline in months")
 
-    series: Dict[str, List[DataPoint]]
-    forecast_horizon: int = Field(3, gt=0, le=24)
+    series: Dict[str, List[DataPoint]] = Field(
+        ...,
+        description="Historical monthly amounts grouped by category"
+    )
+    forecast_horizon: int = Field(
+        3,
+        gt=0,
+        le=24,
+        description="Number of future months to forecast"
+    )
 
+
+# ===============================
+# Saving Plan Month
+# ===============================
 
 class SavingPlanMonth(BaseModel):
-    month: str
-    save: float
-    expected_free_cash: float
+    month: str = Field(..., description="Future month in YYYY-MM format")
+    save: float = Field(..., ge=0, description="Recommended saving for that month")
+    expected_free_cash: float = Field(..., description="Expected remaining free cash")
 
 
 # ===============================
@@ -40,18 +65,33 @@ class SavingPlanMonth(BaseModel):
 # ===============================
 
 class OptimizationResult(BaseModel):
+    status: Literal["ok", "infeasible", "no_solver"] = Field(
+        ...,
+        description="Optimization execution result"
+    )
 
-    status: Literal["ok", "infeasible", "no_solver"]
+    required_cut: float = Field(..., ge=0, description="Required monthly cut to hit goal")
+    achieved_cut: float = Field(..., ge=0, description="Achievable monthly cut based on constraints")
 
-    required_cut: float
-    achieved_cut: float
+    reductions: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Suggested reductions by category"
+    )
 
-    reductions: Dict[str, float] = {}
+    new_budgets: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Projected new budgets after reductions"
+    )
 
-    new_budgets: Dict[str, float] = {}
+    meta: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Optional optimizer metadata"
+    )
 
-    meta: Optional[Dict[str, Any]] = None
-    note: Optional[str] = None
+    note: Optional[str] = Field(
+        default=None,
+        description="Optional explanatory note"
+    )
 
 
 # ===============================
@@ -59,20 +99,30 @@ class OptimizationResult(BaseModel):
 # ===============================
 
 class InsightItem(BaseModel):
+    code: str = Field(..., description="Machine-readable insight code")
 
-    code: str
+    severity: Literal["info", "warning", "critical"] = Field(
+        ...,
+        description="Insight severity level"
+    )
 
-    severity: Literal["info", "warning", "critical"]
+    title: str = Field(..., description="Insight title")
+    message: str = Field(..., description="Human-readable message")
 
-    title: str
+    impact_monthly_egp: float = Field(
+        default=0,
+        description="Estimated monthly impact in EGP"
+    )
 
-    message: str
+    recommendations: List[str] = Field(
+        default_factory=list,
+        description="Suggested user actions"
+    )
 
-    impact_monthly_egp: float = 0
-
-    recommendations: List[str] = []
-
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Extra structured data for the insight"
+    )
 
 
 # ===============================
@@ -80,12 +130,23 @@ class InsightItem(BaseModel):
 # ===============================
 
 class GoalStrategy(BaseModel):
+    max_possible_goal_in_timeframe: float = Field(
+        ...,
+        ge=0,
+        description="Maximum achievable goal amount within the selected timeframe"
+    )
 
-    max_possible_goal_in_timeframe: float
+    recommended_timeline_months: int = Field(
+        ...,
+        gt=0,
+        description="Suggested number of months to achieve the goal"
+    )
 
-    recommended_timeline_months: int
-
-    recommended_monthly_saving: float
+    recommended_monthly_saving: float = Field(
+        ...,
+        ge=0,
+        description="Recommended monthly saving amount"
+    )
 
 
 # ===============================
@@ -93,26 +154,60 @@ class GoalStrategy(BaseModel):
 # ===============================
 
 class SavingPlanResponse(BaseModel):
+    model_version: str = Field(..., description="Saving plan AI model version")
 
-    model_version: str
+    required_monthly_saving: float = Field(
+        ...,
+        ge=0,
+        description="Exact monthly saving needed to hit the goal in the selected timeframe"
+    )
 
-    required_monthly_saving: float
+    predicted_monthly_expenses_avg: float = Field(
+        ...,
+        ge=0,
+        description="Average predicted monthly expenses"
+    )
 
-    predicted_monthly_expenses_avg: float
-    predicted_free_cash_avg: float
+    predicted_free_cash_avg: float = Field(
+        ...,
+        description="Average predicted free cash after expenses"
+    )
 
-    feasible: bool
+    feasible: bool = Field(..., description="Whether the goal is achievable")
 
-    recommended_monthly_saving: float
+    recommended_monthly_saving: float = Field(
+        ...,
+        ge=0,
+        description="AI-recommended monthly saving amount"
+    )
 
-    recommended_cut_target: float
+    recommended_cut_target: float = Field(
+        ...,
+        ge=0,
+        description="Suggested monthly budget cut target"
+    )
 
-    risk_level: Literal["low", "medium", "high"]
+    risk_level: Literal["low", "medium", "high"] = Field(
+        ...,
+        description="Overall risk assessment for achieving the goal"
+    )
 
-    plan: List[SavingPlanMonth]
+    plan: List[SavingPlanMonth] = Field(
+        default_factory=list,
+        description="Month-by-month saving plan"
+    )
 
-    optimization: OptimizationResult
+    optimization: OptimizationResult = Field(
+        ...,
+        description="Optimization result for category reductions"
+    )
 
-    insights: List[InsightItem] = []
+    insights: List[InsightItem] = Field(
+        default_factory=list,
+        description="Generated AI insights and recommendations"
+    )
 
-    goal_strategy: Optional[GoalStrategy] = None
+    goal_strategy: Optional[GoalStrategy] = Field(
+        default=None,
+        description="Suggested alternative strategy to reach the goal"
+    )
