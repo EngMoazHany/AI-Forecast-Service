@@ -26,7 +26,7 @@ MODEL_VERSION = bundle.get("model_version", "rf_global_v2")
 
 
 MAX_MOM_CHANGE = 0.25
-SMOOTHING_LAMBDA = 0.6
+SMOOTHING_LAMBDA = 0.75
 FALLBACK_CATEGORY = "Others"
 
 CATEGORY_ALIASES = {

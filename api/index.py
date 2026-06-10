@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 
-from schemas import (
+from api.schemas import (
     ForecastRequest,
     SavingPlanRequest,
-    SavingPlanResponse
+    SavingPlanResponse,
 )
 
 from api.forecasting_service import run_forecast, MODEL_VERSION as FORECAST_MODEL_VERSION
@@ -14,7 +14,7 @@ from api.saving_plan_ai_service import (
 
 app = FastAPI(
     title="Finexa AI Forecast Service",
-    version="1.4.0"
+    version="1.5.0",
 )
 
 
@@ -22,6 +22,8 @@ app = FastAPI(
 def health():
     return {
         "status": "ok",
+        "service": "Finexa AI Forecast Service",
+        "version": "1.5.0",
         "forecast_model_version": FORECAST_MODEL_VERSION,
         "saving_plan_model_version": get_saving_plan_model_version(),
     }
@@ -31,9 +33,10 @@ def health():
 async def forecast(dto: ForecastRequest):
     try:
         series = {
-            k: [p.model_dump() for p in v]
-            for k, v in dto.series.items()
+            category: [point.model_dump() for point in points]
+            for category, points in dto.series.items()
         }
+
         return run_forecast(series, dto.forecast_horizon)
 
     except Exception as e:
@@ -41,12 +44,13 @@ async def forecast(dto: ForecastRequest):
             status_code=400,
             detail={
                 "code": "FORECAST_ERROR",
-                "message": str(e)
-            }
+                "message": str(e),
+            },
         )
 
 
-@app.post("/saving-plan", response_model=SavingPlanResponse)
+@app.post("/api/saving-plan", response_model=SavingPlanResponse)
+@app.post("/saving-plan", response_model=SavingPlanResponse, include_in_schema=False)
 async def saving_plan(dto: SavingPlanRequest):
     try:
         return build_saving_plan_ai(dto)
@@ -56,6 +60,6 @@ async def saving_plan(dto: SavingPlanRequest):
             status_code=400,
             detail={
                 "code": "SAVING_PLAN_AI_ERROR",
-                "message": str(e)
-            }
+                "message": str(e),
+            },
         )
