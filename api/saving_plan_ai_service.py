@@ -110,8 +110,8 @@ def _safe_div(a: float, b: float) -> float:
     return float(a / b)
 
 
-def _format_money(value: float, currency: str) -> str:
-    return f"{round(value):,} {currency}"
+def _format_money(value: float) -> str:
+    return f"{round(value):,}"
 
 
 def _linear_slope(values: List[float]) -> float:
@@ -195,7 +195,6 @@ def _empty_response(
 
     return {
         "analysisPeriodMonths": int(dto.months),
-        "currency": dto.currency,
         "averageIncome": round(average_income, 2),
         "averageExpenses": round(average_expenses, 2),
         "currentAverageSaving": round(current_average_saving, 2),
@@ -498,7 +497,6 @@ def _difficulty_level(
 
 
 def _build_insights(
-    currency: str,
     average_expenses: float,
     forecasted_expenses: float,
     categories: List[CategorySummary],
@@ -508,7 +506,7 @@ def _build_insights(
 
     insights.append(
         f"Based on previous spending behavior, Finexa expects next month expenses "
-        f"to be around {_format_money(forecasted_expenses, currency)}."
+        f"to be around {_format_money(forecasted_expenses)}."
     )
 
     if months_count < 3:
@@ -565,7 +563,6 @@ def _build_insights(
 def _build_summary_message(
     plan_status: str,
     plan_type: str,
-    currency: str,
     extra_saving: float,
     recommended_monthly_saving: float,
     target_monthly_saving: Optional[float],
@@ -585,10 +582,10 @@ def _build_summary_message(
     if plan_status == "Unrealistic":
         if target_monthly_saving is not None:
             return (
-                f"Your target of {_format_money(target_monthly_saving, currency)}/month "
+                f"Your target of {_format_money(target_monthly_saving)}/month "
                 "is higher than the safe saving opportunity currently available. "
                 f"Finexa recommends a safer target around "
-                f"{_format_money(recommended_monthly_saving, currency)}/month "
+                f"{_format_money(recommended_monthly_saving)}/month "
                 f"using a {plan_type.lower()} plan."
             )
 
@@ -599,7 +596,7 @@ def _build_summary_message(
 
     if target_monthly_saving is not None and extra_saving <= 0:
         return (
-            f"You already meet the target of {_format_money(target_monthly_saving, currency)} "
+            f"You already meet the target of {_format_money(target_monthly_saving)} "
             "based on your current average saving."
         )
 
@@ -607,12 +604,12 @@ def _build_summary_message(
         return (
             f"Your target is possible but requires strong spending control. "
             f"Recommended monthly saving is around "
-            f"{_format_money(recommended_monthly_saving, currency)}."
+            f"{_format_money(recommended_monthly_saving)}."
         )
 
     return (
         f"You can increase your monthly saving by around "
-        f"{_format_money(extra_saving, currency)} using a "
+        f"{_format_money(extra_saving)} using a "
         f"{plan_type.lower()} plan focused on flexible spending categories."
     )
 
@@ -620,7 +617,6 @@ def _build_summary_message(
 def build_saving_plan_ai(dto: SavingPlanRequest) -> Dict[str, Any]:
     months = int(dto.months)
     plan_type = dto.planType
-    currency = dto.currency or "EGP"
 
     monthly_summary = sorted(dto.monthlySummary, key=lambda item: item.month)
 
@@ -786,7 +782,6 @@ def build_saving_plan_ai(dto: SavingPlanRequest) -> Dict[str, Any]:
         )
 
     insights = _build_insights(
-        currency=currency,
         average_expenses=average_expenses,
         forecasted_expenses=forecasted_expenses,
         categories=dto.categorySummary,
@@ -796,7 +791,6 @@ def build_saving_plan_ai(dto: SavingPlanRequest) -> Dict[str, Any]:
     summary_message = _build_summary_message(
         plan_status=plan_status,
         plan_type=plan_type,
-        currency=currency,
         extra_saving=extra_saving_opportunity,
         recommended_monthly_saving=recommended_monthly_saving,
         target_monthly_saving=target_monthly_saving,
@@ -804,7 +798,6 @@ def build_saving_plan_ai(dto: SavingPlanRequest) -> Dict[str, Any]:
 
     return {
         "analysisPeriodMonths": months,
-        "currency": currency,
 
         "averageIncome": round(average_income, 2),
         "averageExpenses": round(average_expenses, 2),

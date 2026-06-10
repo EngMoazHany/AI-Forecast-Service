@@ -152,7 +152,6 @@ class SavingPlanRequest(BaseModel):
     months: int = Field(default=6)
     planType: PlanType = "Balanced"
     targetMonthlySaving: Optional[float] = Field(default=None, ge=0)
-    currency: str = "EGP"
 
     monthlySummary: List[MonthlySummary] = Field(default_factory=list)
     categorySummary: List[CategorySummary] = Field(default_factory=list)
@@ -218,7 +217,6 @@ class SavingPlanResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     analysisPeriodMonths: int
-    currency: str
 
     averageIncome: float
     averageExpenses: float
