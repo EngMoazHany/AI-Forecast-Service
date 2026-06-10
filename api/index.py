@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import (
     ForecastRequest,
@@ -12,10 +13,35 @@ from api.saving_plan_ai_service import (
     get_saving_plan_model_version,
 )
 
+
 app = FastAPI(
     title="Finexa AI Forecast Service",
     version="1.5.0",
+    description="AI forecasting and smart saving plan service for Finexa.",
 )
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # في الإنتاج يفضل تحط لينك الفرونت أو الباك فقط
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "service": "Finexa AI Forecast Service",
+        "version": "1.5.0",
+        "message": "Service is running successfully.",
+        "docs": "/docs",
+        "health": "/health",
+        "forecast": "/forecast",
+        "saving_plan": "/api/saving-plan",
+    }
 
 
 @app.get("/health")
