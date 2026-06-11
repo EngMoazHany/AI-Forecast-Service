@@ -1,0 +1,10 @@
+item,value
+Final dataset file,U:\finexa_forecasting_ai\data\processed\finexa_monthly_category_amount.csv
+Final format,"user_id, category, month, amount"
+Raw rows after preprocessing,4320
+Rows after outlier capping,4320
+Monthly rows after filling missing months,18674
+Feature rows used for ML,17102
+User-category series count,524
+Canonical AI categories,"Food, Transport, Shopping, Bills, Entertainment, Health, Education, Other Expense"
+Backend category grouping,"Drinks/Groceries -> Food, Electronics -> Shopping, Subscriptions/Gym/Receipt/Rent -> Bills, Travel -> Transport"

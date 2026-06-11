@@ -1,0 +1,7 @@
+Condition,Output Status
+No valid monthly summary,NotEnoughData
+Income missing or zero,MissingIncomeData
+Expenses higher than income,Critical
+Target saving is within safe capacity,Realistic
+Target saving is close to maximum possible reduction,Hard
+Target saving exceeds safe opportunity,Unrealistic

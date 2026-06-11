@@ -1,0 +1,77 @@
+{
+  "forecast": {
+    "Food": [
+      {
+        "month": "2026-05",
+        "amount": 4718.67
+      },
+      {
+        "month": "2026-06",
+        "amount": 4476.65
+      },
+      {
+        "month": "2026-07",
+        "amount": 4323.39
+      }
+    ],
+    "Shopping": [
+      {
+        "month": "2026-05",
+        "amount": 3842.67
+      },
+      {
+        "month": "2026-06",
+        "amount": 3647.77
+      },
+      {
+        "month": "2026-07",
+        "amount": 3531.12
+      }
+    ],
+    "Bills": [
+      {
+        "month": "2026-05",
+        "amount": 282.0
+      },
+      {
+        "month": "2026-06",
+        "amount": 269.16
+      },
+      {
+        "month": "2026-07",
+        "amount": 260.73
+      }
+    ]
+  },
+  "total_forecast": [
+    {
+      "month": "2026-05",
+      "amount": 8843.33
+    },
+    {
+      "month": "2026-06",
+      "amount": 8393.58
+    },
+    {
+      "month": "2026-07",
+      "amount": 8115.24
+    }
+  ],
+  "model_version": "rf_global_finexa_user_category_v5_log_target",
+  "meta": {
+    "category_grouping": {
+      "Drinks": "Food",
+      "Groceries": "Food",
+      "Electronics": "Shopping",
+      "Subscriptions": "Bills",
+      "Gym": "Bills",
+      "Receipt": "Bills",
+      "Rent": "Bills",
+      "Travel": "Transport"
+    },
+    "guardrails": {
+      "max_mom_change": 0.25,
+      "smoothing_lambda": 0.6
+    }
+  }
+}

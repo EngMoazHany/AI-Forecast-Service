@@ -1,0 +1,7 @@
+Metric,Value,Meaning
+MAE,1657.4423,Average absolute prediction error
+RMSE,5606.5096,Penalizes larger prediction errors
+R2 Score,-0.0953,Explains variance in spending behavior
+Train Rows,13481,Number of training samples
+Test Rows,3621,Number of testing samples
+Model Version,rf_global_finexa_user_category_v5_log_target,Final deployed forecasting model

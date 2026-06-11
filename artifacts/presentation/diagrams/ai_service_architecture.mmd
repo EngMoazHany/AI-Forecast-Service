@@ -1,0 +1,10 @@
+flowchart LR
+    FE[Frontend] --> BE[Backend]
+    BE --> DB[(Database)]
+    BE --> AI[Finexa AI Service]
+    AI --> FC[Forecasting Engine]
+    AI --> SP[Saving Plan Advisor]
+    FC --> ML[(Trained Forecast Model)]
+    SP --> Rules[Financial Rules and Guardrails]
+    AI --> BE
+    BE --> FE

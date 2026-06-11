@@ -1,0 +1,6 @@
+Reason,Explanation
+No labeled dataset,There are no real labels for ideal recommended budgets.
+Financial explainability required,Recommendations must be clear and explainable.
+Safety constraints are mandatory,Essential categories should not be aggressively reduced.
+Business rules are clearer,"Realistic, Hard, Critical, and Unrealistic states must be deterministic."
+Forecasting already uses ML,Saving Plan uses ML forecast output plus financial rules and guardrails.

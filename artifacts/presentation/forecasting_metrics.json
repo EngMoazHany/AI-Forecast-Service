@@ -1,0 +1,23 @@
+{
+  "model_version": "rf_global_finexa_user_category_v5_log_target",
+  "metrics": {
+    "mae": 1657.4423,
+    "rmse": 5606.5096,
+    "r2": -0.0953,
+    "test_rows": 3621
+  },
+  "train_rows": 13481,
+  "test_rows": 3621,
+  "task_type": "Regression",
+  "why_no_confusion_matrix": "Forecasting predicts numeric spending amounts, so it is a regression task. Confusion matrix is for classification tasks, therefore MAE, RMSE, and R2 are used.",
+  "category_grouping": {
+    "Drinks": "Food",
+    "Groceries": "Food",
+    "Electronics": "Shopping",
+    "Subscriptions": "Bills",
+    "Gym": "Bills",
+    "Receipt": "Bills",
+    "Rent": "Bills",
+    "Travel": "Transport"
+  }
+}

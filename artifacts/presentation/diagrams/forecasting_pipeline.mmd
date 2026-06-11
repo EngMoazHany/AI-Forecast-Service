@@ -1,0 +1,10 @@
+flowchart LR
+    A[Raw Monthly Dataset] --> B[Normalize Backend Categories]
+    B --> C[Group Detailed Categories into AI Categories]
+    C --> D[Cap Extreme Outliers]
+    D --> E[Fill Missing Months per User-Category]
+    E --> F[Create Lag Features]
+    F --> G[Train RandomForest Regression Model]
+    G --> H[Evaluate with MAE RMSE R2]
+    H --> I[Save global_expense_model.pkl]
+    I --> J[Forecast API]

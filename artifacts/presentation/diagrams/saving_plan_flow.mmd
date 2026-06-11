@@ -1,0 +1,14 @@
+flowchart TD
+    A[Frontend Request] --> B[Backend API]
+    B --> C[Get UserId from JWT]
+    C --> D[Load Transactions from Database]
+    D --> E[Build monthlySummary]
+    D --> F[Build categorySummary]
+    E --> G[AI Saving Plan API]
+    F --> G
+    G --> H[Spending Analysis]
+    H --> I[Forecast Next Month]
+    I --> J[Apply Saving Plan Rules]
+    J --> K[Generate Recommendations]
+    K --> L[Backend Validates Response]
+    L --> M[Frontend Displays Cards Charts Insights]
