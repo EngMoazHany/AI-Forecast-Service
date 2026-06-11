@@ -1,0 +1,9 @@
+item,value
+Generated Shopping rows,903
+Original rows before augmentation,3676
+Final rows after augmentation,4579
+Shopping average amount,2339.87
+Shopping median amount,1501.31
+Shopping max amount,18000.0
+Backup file,U:\finexa_forecasting_ai\data\processed\finexa_monthly_category_amount_before_shopping_backup.csv
+Updated dataset,U:\finexa_forecasting_ai\data\processed\finexa_monthly_category_amount.csv
