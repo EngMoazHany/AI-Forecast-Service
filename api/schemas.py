@@ -179,8 +179,8 @@ class SavingPlanRequest(BaseModel):
     @field_validator("months")
     @classmethod
     def validate_months(cls, value: int) -> int:
-        if value not in (3, 6):
-            raise ValueError("months must be either 3 or 6.")
+        if value not in (3, 6, 12):
+            raise ValueError("months must be either 3, 6, or 12.")
         return value
 
     @field_validator("planType", mode="before")
