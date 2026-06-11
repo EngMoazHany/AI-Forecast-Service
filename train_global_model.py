@@ -101,6 +101,8 @@ CATEGORY_ALIASES: Dict[str, str] = {
     "phone device": "Shopping",
     "laptop": "Shopping",
     "computer": "Shopping",
+    "receipt": "Shopping",
+    "receipts": "Shopping",
 
     # Bills group
     "bill": "Bills",
@@ -129,8 +131,6 @@ CATEGORY_ALIASES: Dict[str, str] = {
     "saas": "Bills",
     "gym": "Bills",
     "fitness": "Bills",
-    "receipt": "Bills",
-    "receipts": "Bills",
 
     # Entertainment
     "entertainment": "Entertainment",
@@ -422,7 +422,7 @@ def create_dataset_artifacts(
                 "item": "Backend category grouping",
                 "value": (
                     "Drinks/Groceries -> Food, Electronics -> Shopping, "
-                    "Subscriptions/Gym/Receipt/Rent -> Bills, Travel -> Transport"
+                    "Subscriptions/Gym/Rent -> Bills, Receipt -> Shopping, Travel -> Transport"
                 ),
             },
         ]
@@ -496,7 +496,7 @@ def create_metrics_artifacts(metrics: Dict[str, Any], train_rows: int, test_rows
                 "Electronics": "Shopping",
                 "Subscriptions": "Bills",
                 "Gym": "Bills",
-                "Receipt": "Bills",
+                "Receipt": "Shopping",
                 "Rent": "Bills",
                 "Travel": "Transport",
             },
@@ -682,7 +682,7 @@ def forecast_sample(
                 "Electronics": "Shopping",
                 "Subscriptions": "Bills",
                 "Gym": "Bills",
-                "Receipt": "Bills",
+                "Receipt": "Shopping",
                 "Rent": "Bills",
                 "Travel": "Transport",
             },
@@ -880,7 +880,7 @@ flowchart TD
 
     A6[Subscriptions] --> BL[Bills]
     A7[Gym] --> BL
-    A8[Receipt] --> BL
+    A8[Receipt] --> S
     A9[Rent] --> BL
     A10[Bills] --> BL
 
@@ -1013,7 +1013,7 @@ def train_model() -> None:
             "Electronics": "Shopping",
             "Subscriptions": "Bills",
             "Gym": "Bills",
-            "Receipt": "Bills",
+            "Receipt": "Shopping",
             "Rent": "Bills",
             "Travel": "Transport",
             "Other": "Other Expense",

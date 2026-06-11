@@ -193,6 +193,14 @@ SAVING_CATEGORY_MAPPING: Dict[str, Dict[str, str]] = {
         "canonical": "Shopping",
         "categoryType": "Flexible",
     },
+    "receipt": {
+        "canonical": "Shopping",
+        "categoryType": "Flexible",
+    },
+    "receipts": {
+        "canonical": "Shopping",
+        "categoryType": "Flexible",
+    },
 
     # Bills group
     "bills": {
@@ -296,14 +304,6 @@ SAVING_CATEGORY_MAPPING: Dict[str, Dict[str, str]] = {
         "categoryType": "Essential",
     },
     "fitness": {
-        "canonical": "Bills",
-        "categoryType": "Essential",
-    },
-    "receipt": {
-        "canonical": "Bills",
-        "categoryType": "Essential",
-    },
-    "receipts": {
         "canonical": "Bills",
         "categoryType": "Essential",
     },

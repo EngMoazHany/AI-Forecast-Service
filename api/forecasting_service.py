@@ -77,6 +77,8 @@ AI_CATEGORY_ALIASES: Dict[str, str] = {
     "phone device": "Shopping",
     "laptop": "Shopping",
     "computer": "Shopping",
+    "receipt": "Shopping",
+    "receipts": "Shopping",
 
     # Bills group
     "bill": "Bills",
@@ -105,8 +107,6 @@ AI_CATEGORY_ALIASES: Dict[str, str] = {
     "saas": "Bills",
     "gym": "Bills",
     "fitness": "Bills",
-    "receipt": "Bills",
-    "receipts": "Bills",
 
     # Entertainment
     "entertainment": "Entertainment",
@@ -157,7 +157,7 @@ CATEGORY_GROUPING = {
     "Electronics": "Shopping",
     "Subscriptions": "Bills",
     "Gym": "Bills",
-    "Receipt": "Bills",
+    "Receipt": "Shopping",
     "Rent": "Bills",
     "Travel": "Transport",
     "Other": "Other Expense",
@@ -258,7 +258,7 @@ def normalize_forecast_series(
     The model sees canonical categories:
     Drinks + Groceries + Food => Food
     Electronics + Shopping => Shopping
-    Subscriptions + Gym + Receipt + Rent + Bills => Bills
+    Subscriptions + Gym + Rent + Bills => Bills, Receipt => Shopping
 
     But the public API response will still return the original request names.
     """
